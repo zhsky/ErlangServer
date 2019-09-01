@@ -1,0 +1,10 @@
+{
+	[
+		'src/kernel/main.erl'
+	],
+	[
+		{i,"include/"},
+		inline,
+		warnings_as_errors
+	]
+}.
