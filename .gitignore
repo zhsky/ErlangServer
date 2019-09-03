@@ -1,6 +1,6 @@
 .eunit
 deps
-log
+log/*
 *.o
 *.beam
 *.plt

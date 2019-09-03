@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-01 14:13:33
 %% @Doc:	DESC
-%% @Last:	2019-09-01 20:12:41
+%% @Last:	2019-09-03 17:53:24
 %% ====================================================================
 
 -module(main).
@@ -22,6 +22,7 @@ start() ->
 	try
 		io:format("main start~n"),
 		application:ensure_all_started(sasl),
+		application:ensure_all_started(ranch),
 		application:ensure_all_started(server),
 		ok
 	catch
