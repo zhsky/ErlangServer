@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-03 17:08:14
 %% @Doc:	基于ranch库开发,增加了ranch_tcp对异步收发消息的支持
-%% @Last:	2019-09-03 21:45:35
+%% @Last:	2019-09-04 22:15:39
 %% ====================================================================
 
 -module(game_protocol).
@@ -38,28 +38,35 @@ handle_info({inet_async, Socket, _Ref, {ok,DataBin}}, #state{socket = Socket, tr
 	gen_server:cast(DPid,{decode,DataBin}),
 	Transport:async_recv(Socket, 0, infinity),
 	{noreply,State};
+handle_info({inet_async, Socket, _Ref, {error,closed}}, #state{socket = Socket, ip = IP, port = Port} = State) ->
+	?INFO("tcp close ~p:~w", [IP, Port]),
+	{stop, normal, State};
 handle_info({inet_async, Socket, _Ref, {error,Reason}}, #state{socket = Socket, ip = IP, port = Port} = State) ->
-	?ERROR_MSG("RECV ERROR ~p:~w,~p",[IP,Port,Reason]),
+	?ERROR("RECV ERROR ~p:~w,~p",[IP,Port,Reason]),
 	{stop, {recv_error,Reason}, State};
+
 
 handle_info({inet_reply, _Socket ,ok}, State) ->
 	{noreply, State};
+handle_info({inet_reply, Socket, {error, enotconn}}, #state{socket = Socket, ip = IP, port = Port} = State) ->
+	?INFO("SEND ERROR enotconn ~p:~w,~p",[IP,Port]),
+	{stop, normal, State};
 handle_info({inet_reply, Socket, {error, Reason}}, #state{socket = Socket, ip = IP, port = Port} = State) ->
-	?ERROR_MSG("SEND ERROR ~p:~w,~p",[IP,Port,Reason]),
+	?ERROR("SEND ERROR ~p:~w,~p",[IP,Port,Reason]),
 	{stop, {send_error,Reason}, State};
 
 handle_info({tcp_error, Socket, Reason}, #state{socket = Socket, ip = IP, port = Port} = State) ->
-	?ERROR_MSG("tcp error ~p:~w ~n", [IP, Port]),
+	?ERROR("tcp error ~p:~w", [IP, Port]),
 	{stop, {tcp_error,Reason}, State};
 handle_info({tcp_closed, Socket}, #state{socket = Socket, ip = IP, port = Port} = State) ->
-	?ERROR_MSG("tcp close ~p:~w ~n", [IP, Port]),
+	?INFO("tcp close ~p:~w", [IP, Port]),
 	{stop, normal, State};
 
 handle_info({send, DataBin}, #state{socket = Socket, ip = IP, port = Port, transport = Transport} = State) ->
 	case Transport:async_send(Socket, DataBin) of
 		ok -> ok;
 		Error ->
-			?ERROR_MSG("async_send ~p:~w ~p~n", [IP, Port,Error])
+			?ERROR("async_send ~p:~w ~p~n", [IP, Port,Error])
 	end,
 	{noreply, State};
 

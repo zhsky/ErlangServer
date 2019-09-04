@@ -4,9 +4,8 @@ cd /d %~dp0
 set input=%1
 set BASE_DIR=%~dp0
 
-set PROCESSES=4
-set MAKE_OPTS="{d,'DEBUG_MODE'}"
-set MAKE_LOCAL_OPTS="{d,'DEBUG_MODE'},{'LOCAL_MODE',true}"
+set MAKE_OPTS="{d,'DEBUG_MODE'},load"
+set MAKE_LOCAL_OPTS="{d,'DEBUG_MODE'},{d,'LOCAL_MODE'},load"
 
 set NODE_NAME=game_node@192.168.16.117
 set COOKIE=123456
@@ -45,7 +44,7 @@ goto fun_run
 	cd %BASE_DIR%
 	
 	erl -noinput -eval "case make:files([\"src/kernel/makeapp.erl\"],[{outdir, \"ebin\"}]) of error -> halt(1); _ -> halt(0) end"
-	erl -noinput -pa ./ebin -eval "case catch makeapp:make(%PROCESSES%,[%MAKE_OPTS%,{outdir, \"ebin\"}]) of up_to_date -> halt(0); error -> halt(1) end."
+	erl -noinput -pa ./ebin -eval "case catch makeapp:make([%MAKE_OPTS%,{outdir, \"ebin\"}]) of up_to_date -> halt(0); error -> halt(1) end."
 	goto wait_input
 
 :fun_imake
@@ -53,7 +52,7 @@ goto fun_run
 	cd %BASE_DIR%
 	
 	gen_localmakefile
-	erl -pa ./ebin -noinput -eval "case makeapp:make(%PROCESSES%,[%MAKE_LOCAL_OPTS%,{outdir, \"ebin\"}]) of up_to_date -> halt(0); error -> halt(1) end."
+	erl -pa ./ebin -noinput -eval "case makeapp:make([%MAKE_LOCAL_OPTS%,{outdir, \"ebin\"}]) of up_to_date -> halt(0); error -> halt(1) end."
 	goto wait_input
 
 :fun_start

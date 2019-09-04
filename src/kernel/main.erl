@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-01 14:13:33
 %% @Doc:	DESC
-%% @Last:	2019-09-03 17:53:24
+%% @Last:	2019-09-04 22:19:30
 %% ====================================================================
 
 -module(main).
@@ -34,6 +34,7 @@ stop() ->
 	try
 		application:stop(server),
 		application:stop(sasl),
+		io:format("main stop~n"),
 		init:stop()
 	catch
 		_:Reason ->	

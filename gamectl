@@ -1,0 +1,58 @@
+#! /bin/bash
+
+NODE_NAME=game_node@192.168.16.240
+COOKIE=123456
+if [ -f "./smp" ];then
+    SMP=`cat ./smp`
+else
+    SMP="enable"
+fi
+ERLANG_OPTS="-connect_all false +K true -smp $SMP +P 5000000 +t 16777216 +fnu +hms 8192 +hmbs 8192 +zdbbl 81920 -v"
+
+function help()
+{
+	echo "$0 Param:"
+	echo "Param:"
+	echo "start		启动应用"
+	echo "stop		停止应用"
+	echo "update	热更新应用"
+	exit 0
+}
+
+if [ $# -lt 1 ]; then
+	help
+	exit -1
+fi
+
+
+function fun_start()
+{
+    erl -name $NODE_NAME -noinput -detached -hidden -pa ./ebin -setcookie $COOKIE -kernel error_logger silent \
+      -sasl sasl_error_logger \{file,"$SASL_LOG"\}  errlog_type error \
+      -kernel inet_dist_listen_min 41000 inet_dist_listen_max 42000 -kernel net_ticktime 600 \
+      -s main start $ERLANG_OPTS
+}
+
+function fun_start_active()
+{
+	erl -name $NODE_NAME  -pa ./ebin -setcookie $COOKIE -s main start $ERLANG_OPTS
+}
+
+function fun_stop()
+{
+    erl -noinput -detached -pa "./ebin" -name stop_$NODE_NAME -setcookie $COOKIE \
+		-eval "catch rpc:call('$NODE_NAME',main,stop,[]),init:stop()."
+}
+
+function update()
+{
+    echo "update"
+}
+
+case $1 in
+	'start')	fun_start;;
+	'start2')	fun_start_active;;
+	'stop')		fun_stop;;
+	'update')	start;;
+	*)	help;;
+esac
