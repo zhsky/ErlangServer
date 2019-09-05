@@ -2,12 +2,13 @@
 %% @Author:	Payton
 %% @Date:	2019-09-03 21:25:08
 %% @Doc:	DESC
-%% @Last:	2019-09-03 21:48:57
+%% @Last:	2019-09-05 12:22:38
 %% ====================================================================
 
 -module(protocol_decoder).
 -behaviour(gen_server).
 
+-include("log.hrl").
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -16,7 +17,7 @@
 		start_link/0
 	]).
 
--record(state,{}).
+-record(state,{wait_bin = <<>>,wait_len = 0,data_len = 0}).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
@@ -42,9 +43,35 @@ code_change(_OldVsn,State,_Extra) ->
 handle_cast(stop, State) ->
 	{stop,normal,State};
 
-handle_cast({decode,_Data}, State) ->
-	%%%%%%%%%%%%%%%
-	{noreply,State};
+handle_cast({decode,Data}, State) ->
+	NewState = decode_data(Data,State),
+	{noreply,NewState};
 
 handle_cast(_Info, State) ->
 	{noreply,State}.
+
+decode_data(<<>>,State) -> State;
+decode_data(Data,State = #state{wait_bin = WaitData,wait_len = WaitLen}) ->
+	NewData = <<WaitData/binary,Data/binary>>,
+	decode_waitdata(State#state{wait_bin = NewData,wait_len = WaitLen + byte_size(Data)}).
+
+decode_waitdata(State = #state{wait_bin = <<Len:32/little,LeftData/binary>>,wait_len = WaitLen,data_len = 0}) when WaitLen >= 4 ->
+	decode_waitdata(State#state{wait_bin = LeftData,wait_len = WaitLen - 4,data_len = Len});
+decode_waitdata(State = #state{wait_bin = WaitData,wait_len = WaitLen,data_len = DataLen}) when DataLen > 0 andalso WaitLen >= DataLen ->
+	<<FinalData:DataLen/binary,LeftData/binary>> = WaitData,
+	decode_msg(FinalData),
+	decode_waitdata(State#state{wait_bin = LeftData,wait_len = WaitLen - DataLen, data_len = 0});
+decode_waitdata(State) -> State.
+
+
+
+decode_msg(FinalData) ->
+	<<Id:32/little,Data1/binary>> = FinalData,
+
+	<<Len:32/little,Data2/binary>> = Data1,
+	<<Name:Len/binary-unit:8,Data3/binary>> = Data2,
+
+	<<ContentLen:32/little,Data4/binary>> = Data3,
+	<<Content:ContentLen/binary-unit:8,_Data/binary>> = Data4,
+
+	?INFO("~p,~p,~p",[Id,Name,byte_size(Content)]).

@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-04 18:31:20
 %% @Doc:	DESC
-%% @Last:	2019-09-04 22:07:22
+%% @Last:	2019-09-05 12:14:53
 %% ====================================================================
 
 -module(test_ranch_socket).
@@ -13,6 +13,8 @@
 -export([
 		main/1
 		,send_recv/0
+		,socket_connect/1
+		,send_data/1
 	]).
 
 %% ====================================================================
@@ -20,12 +22,12 @@
 %% ====================================================================
 
 main(Num) ->
-	socket_connect(Num).
+	send_data(Num).
 
 socket_connect(Num) ->
 	Pids = [
 		begin
-			{ok, Socket} = gen_tcp:connect({192,168,16,240},6000,[binary,{active, once}, {packet, 0}]),
+			{ok, Socket} = gen_tcp:connect({192,168,16,240},6000,[binary,{active, false}, {packet, 0}]),
 			Socket
 		end
 	|| _ <- lists:seq(1,Num)
@@ -52,6 +54,27 @@ send_recv() ->
 	lists:foreach(fun(_) ->
 		gen_tcp:send(Socket,erlang:pid_to_list(self()))
 	end,lists:seq(1,500)),
-	receive after 2000 -> ok end,
+	timer:sleep(2000),
 	gen_tcp:close(Socket).
 
+send_data(_Num) ->
+	SendBytes = 10 * 1024 * 1024,
+	Bin = list_to_binary([1 || _ <- lists:seq(1,SendBytes)]),
+
+	{ok, Socket} = gen_tcp:connect({192,168,16,240},6000,[binary,{active, false},{packet, 0}]),
+
+	Id = 16#ffffff,
+	Name = list_to_binary("Jack"),
+	NameSize = byte_size(Name),
+	Content = Bin,
+	ContentLen = byte_size(Content),
+
+	Data = <<Id:32/little,NameSize:32/little,Name/binary,ContentLen:32/little,Content/binary>>,
+	DataLen = byte_size(Data),
+	Msg = <<DataLen:32/little,Data/binary>>,
+	gen_tcp:send(Socket,Msg),
+
+	file:write_file("./send_file.txt",Data),
+	io:format("~p,~p,~p~n",[Id,Name,ContentLen]),
+
+	gen_tcp:close(Socket).

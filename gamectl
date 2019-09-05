@@ -33,7 +33,7 @@ function fun_start()
       -s main start $ERLANG_OPTS
 }
 
-function fun_start_active()
+function fun_start_interaction()
 {
 	erl -name $NODE_NAME  -pa ./ebin -setcookie $COOKIE -s main start $ERLANG_OPTS
 }
@@ -50,8 +50,8 @@ function update()
 }
 
 case $1 in
-	'start')	fun_start;;
-	'start2')	fun_start_active;;
+	'start')	fun_start_interaction;;
+	'start2')	fun_start;;
 	'stop')		fun_stop;;
 	'update')	start;;
 	*)	help;;

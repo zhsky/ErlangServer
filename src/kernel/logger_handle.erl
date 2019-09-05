@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-02 11:00:39
 %% @Doc:	根据error_logger_file_h修改
-%% @Last:	2019-09-02 17:38:49
+%% @Last:	2019-09-05 12:21:14
 %% ====================================================================
 
 -module(logger_handle).
@@ -57,7 +57,7 @@ get_log_name(_BaseDir) ->
 cron_next_log() ->
 	NextTime = next_hour_time(),
 	erlang:spawn(fun() ->
-		receive after NextTime * 1000 -> ok end,
+		timer:sleep(NextTime * 1000),
 		gen_event:notify(error_logger, next_log)
 	end).
 
@@ -166,5 +166,5 @@ string_p1([]) -> true;
 string_p1(_) ->  false.
 
 write_time({_,{H,M,S}}, Type) ->
-	lists:flatten(io_lib:format("~n(~.2.0w:~.2.0w:~.2.0w)[~s] ",[H, M, S, Type])).
+	lists:flatten(io_lib:format("~n(~.2.0w:~.2.0w:~.2.0w)[~s]",[H, M, S, Type])).
 
