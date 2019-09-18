@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-01 16:43:30
 %% @Doc:	根据make.erl修改
-%% @Last:	2019-09-04 17:38:50
+%% @Last:	2019-09-17 21:08:43
 %% ====================================================================
 
 -module(makeapp).
@@ -69,8 +69,8 @@ get_update_lists([File | FileList], AccIn) ->
 		end,
 		get_update_lists(FileList,NewAccIn)
 	catch
-		_:_Err:Trace -> 
-			io:format("ERROR:~n~p~n",[Trace]),
+		_:_Err -> 
+			io:format("ERROR:~n~p~n",[erlang:get_backtrace()]),
 			[]
 	end.
 

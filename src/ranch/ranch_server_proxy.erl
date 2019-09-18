@@ -22,6 +22,7 @@
 -export([handle_cast/2]).
 -export([handle_info/2]).
 -export([code_change/3]).
+-export([terminate/2]).
 
 -spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
@@ -65,3 +66,5 @@ wait_ranch_server(N) ->
 			Monitor = monitor(process, Pid),
 			{ok, Monitor}
 	end.
+terminate(_Reason,_State) ->
+	ok.

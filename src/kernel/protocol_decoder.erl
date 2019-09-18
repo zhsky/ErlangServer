@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-03 21:25:08
 %% @Doc:	DESC
-%% @Last:	2019-09-05 12:22:38
+%% @Last:	2019-09-09 10:59:09
 %% ====================================================================
 
 -module(protocol_decoder).
@@ -57,13 +57,25 @@ decode_data(Data,State = #state{wait_bin = WaitData,wait_len = WaitLen}) ->
 
 decode_waitdata(State = #state{wait_bin = <<Len:32/little,LeftData/binary>>,wait_len = WaitLen,data_len = 0}) when WaitLen >= 4 ->
 	decode_waitdata(State#state{wait_bin = LeftData,wait_len = WaitLen - 4,data_len = Len});
-decode_waitdata(State = #state{wait_bin = WaitData,wait_len = WaitLen,data_len = DataLen}) when DataLen > 0 andalso WaitLen >= DataLen ->
-	<<FinalData:DataLen/binary,LeftData/binary>> = WaitData,
-	decode_msg(FinalData),
+decode_waitdata(State = #state{wait_bin = WaitData,wait_len = WaitLen,data_len = DataLen}) 
+		when DataLen > 0 andalso WaitLen >= DataLen ->
+	DataLen1 = DataLen - 4,
+	<<CrcCode:32/little,FinalData:DataLen1/binary,LeftData/binary>> = WaitData,
+
+	case validate_data(CrcCode,FinalData) of
+		true ->
+			decode_msg(FinalData);
+		_ ->
+			?DEBUG("ignore illegal data")
+	end,
 	decode_waitdata(State#state{wait_bin = LeftData,wait_len = WaitLen - DataLen, data_len = 0});
 decode_waitdata(State) -> State.
 
-
+validate_data(ClientCrcCode,FinalData) ->
+	CrcBin = list_to_binary("[crc_key]"),
+	Checkbin = <<CrcBin/binary,FinalData/binary>>,
+	CrcCode = erlang:crc32(Checkbin),
+	ClientCrcCode == CrcCode.
 
 decode_msg(FinalData) ->
 	<<Id:32/little,Data1/binary>> = FinalData,

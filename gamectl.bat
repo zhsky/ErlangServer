@@ -58,7 +58,7 @@ goto fun_run
 :fun_start
 	rem ∆Ù∂Ø”¶”√
 	cd %BASE_DIR%
-	set strtime=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
+	set strtime=%date:~0,4%%date:~5,2%%date:~8,2%
 	set SASL_LOG=./log/log_%strtime%.sasl
 
 	start werl +P 102400 -smp auto -pa "./ebin" ^

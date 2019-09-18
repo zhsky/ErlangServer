@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-01 19:41:10
 %% @Doc:	DESC
-%% @Last:	2019-09-04 22:26:32
+%% @Last:	2019-09-18 09:21:05
 %% ====================================================================
 
 -module(game_app).
@@ -26,6 +26,8 @@ start(_Type,[]) ->
 	error_logger:add_report_handler(logger_handle),
 
 	{ok, SuperPid} = game_app_sup:start_link(),
+
+	game_server:start(),
 	{ok, SuperPid}.
 
 pre_stop(_State) ->

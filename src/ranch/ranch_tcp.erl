@@ -86,7 +86,7 @@ messages() -> {tcp, tcp_closed, tcp_error, tcp_passive}.
 
 -spec listen(ranch:transport_opts(opts())) -> {ok, inet:socket()} | {error, atom()}.
 listen(TransOpts) ->
-	Logger = maps:get(logger, TransOpts, logger),
+	Logger = maps:get(logger, TransOpts, error_logger),
 	SocketOpts0 = maps:get(socket_opts, TransOpts, []),
 	SocketOpts1 = ranch:set_option_default(SocketOpts0, backlog, 1024),
 	SocketOpts2 = ranch:set_option_default(SocketOpts1, nodelay, true),
