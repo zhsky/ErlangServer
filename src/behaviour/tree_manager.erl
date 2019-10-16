@@ -1,15 +1,14 @@
 %% ====================================================================
 %% @Author:	Payton
-%% @Date:	2019-09-17 12:31:44
+%% @Date:	2019-09-18 10:57:35
 %% @Doc:	DESC
-%% @Last:	2019-09-18 10:59:26
+%% @Last:	2019-10-16 21:04:53
 %% ====================================================================
 
 -module(tree_manager).
 -include("behaviour.hrl").
 -include("log.hrl").
 
--define(NODE_ID,node_id).
 -define(QUIT_IF(A,Msg),case A of true -> throw(Msg);_ -> skip end).
 -define(QUIT_IF_NOT(A,Msg),case A of false -> throw(Msg);_ -> skip end).
 -define(CONTROL_SET,[?PRIOSELNODE,?SEQUENCENODE,?PARASELNODE]).
@@ -17,7 +16,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_tree/1]).
+-export([get_tree/1,update_tree/1]).
 
 %% ====================================================================
 %% Internal functions
@@ -32,22 +31,26 @@ get_tree(TreeName) ->
 	end.
 
 start_build(TreeName) ->
-	Node = TreeName:tree_info(),
 	try 
+		Node = TreeName:tree_info(),
 		_TreeNode = build_tree(Node),
 		TreeNode = validate_tree(TreeName,_TreeNode),
 		TreeNode
 	catch
-		_:Err ->
-			?DTRACE2("~p~n",[Err]),
+		_:Err:Trace ->
+			?ERROR("~p:~p~n",[Err,Trace]),
 			undefined
 	end.
-	
+
+update_tree([]) -> ok;
+update_tree([TreeName | Tail]) -> 
+	put(TreeName,undefined),
+	update_tree(Tail).
 
 build_tree(undefined) -> [];
 build_tree(Node) ->
 	NodeType = proplists:get_value(node_type,Node),
-	NodeId = proplists:get_value(node_id,Node),
+	NodeId = get_node_id(),
 	NodeAction = proplists:get_value(node_action,Node),
 
 	NodeCond = proplists:get_value(node_cond,Node),
@@ -72,7 +75,7 @@ build_tree(Node) ->
 	end.
 
 validate_tree(TreeName,TreeNode) ->
-	put(?NODE_ID,[]),
+	?INFO("validate_tree:~p",[TreeName]),
 	case catch do_validate_tree(TreeNode) of
 		{error,Err} ->
 			?WARNING("ERROR ~p,Name:~p,Tree:~p",[Err,TreeName,TreeNode]),
@@ -85,10 +88,7 @@ validate_tree(TreeName,TreeNode) ->
 
 do_validate_tree(#tree_node{node_id = NodeId, node_type = NodeType, node_precondition = NodeCond,
 		node_action = NodeAction, sequence_length = Length, sub_node = SubNodes}) ->
-	IDs = get(?NODE_ID),
-	?QUIT_IF_NOT(is_integer(NodeId),{error,wrong_id}),
-	?QUIT_IF(lists:member(NodeId,IDs),{error,repeat_id}),
-	put(?NODE_ID,[NodeId | IDs]),
+	?INFO("validate_node_id:~p",[NodeId]),
 
 	#node_cond{cond_type = CondType} = NodeCond,
 	?QUIT_IF_NOT(lists:member(CondType,?COND_SET),{error,cond_type}),
@@ -113,3 +113,13 @@ do_validate_tree(#tree_node{node_id = NodeId, node_type = NodeType, node_precond
 	lists:foreach(fun(SubNode) -> 
 		do_validate_tree(SubNode) 
 	end,SubNodes).
+
+get_node_id() ->
+	case get(node_id) of
+		undefined -> 
+			put(node_id,1),
+			1;
+		Id -> 
+			put(node_id,Id + 1),
+			Id + 1
+	end.
