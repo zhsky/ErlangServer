@@ -1,9 +1,11 @@
 {
 	[
-		'src/*',		
-		'src/*/*',
-		'test/*',
-		'test/*/*'
+		'deps/ranch/*',
+		'deps/cowboy/cowlib/*',
+		'deps/cowboy/cowboy/cowboy_sub_protocol.erl',
+		'deps/cowboy/cowboy/cowboy_stream.erl',
+		'deps/cowboy/cowboy/cowboy_middleware.erl',
+		'deps/cowboy/cowboy/*'
 	],
 	[
 		{i, "include/"},
@@ -13,8 +15,9 @@
 }.
 {
 	[
-		'src/*',		
+		'src/*',
 		'src/*/*',
+		'src/*/*/*',
 		'test/*',
 		'test/*/*'
 	],

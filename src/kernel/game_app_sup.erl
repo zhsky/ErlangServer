@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-01 19:50:47
 %% @Doc:	DESC
-%% @Last:	2019-09-04 22:18:31
+%% @Last:	2019-10-22 11:44:25
 %% ====================================================================
 
 -module(game_app_sup).
@@ -10,6 +10,7 @@
 -include("log.hrl").
 
 -define(CHILD_SPEC(Mod),{Mod, {Mod, start_link, []}, permanent, 5000, worker, [Mod]}).
+-define(SUP_SPEC(Mod),{Mod, {Mod, start_link, []}, permanent, 5000, supervisor, [Mod]}).
 -define(SUP_FLAGS,{one_for_one,1,60}).
 
 -define(SOL_SOCKET,1).
@@ -58,8 +59,9 @@ init([]) ->
 	RanchSpec = ranch:child_spec({?MODULE,game_protocol},ranch_tcp,
 			#{socket_opts => [{ip, Ip},{port, Port}] ++ ?TCP_OPTIONS ++ ?TCP_REUSEPORT, ?TRANS_OPTIONS},
 			game_protocol,[]),
+	CowBoySpec = ?CHILD_SPEC(http_sup),
 
-	StartList = [RanchSpec],
+	StartList = [RanchSpec,CowBoySpec],
 	{ok,{?SUP_FLAGS, StartList}}.
 
 start_child(Mod) ->
