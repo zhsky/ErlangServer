@@ -92,10 +92,3 @@ format_error(reuseport_local) ->
 	"num_listen_sockets must be set to 1 for local sockets";
 format_error(Reason) ->
 	inet:format_error(Reason).
-	
-ceil(N) ->
-    T = trunc(N),
-    case N == T of
-      true -> T;
-      false -> 1 + T
-    end.

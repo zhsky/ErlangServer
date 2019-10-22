@@ -38,10 +38,3 @@ init({Ref, Transport, Protocol, Logger}) ->
 		type => supervisor
 	} || N <- lists:seq(1, NumConnsSups)],
 	{ok, {#{intensity => 1 + ceil(math:log2(NumConnsSups))}, ChildSpecs}}.
-
-ceil(N) ->
-    T = trunc(N),
-    case N == T of
-      true -> T;
-      false -> 1 + T
-    end.
