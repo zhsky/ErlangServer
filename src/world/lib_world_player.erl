@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-10-23 15:52:32
 %% @Doc:	DESC
-%% @Last:	2019-10-23 17:14:40
+%% @Last:	2019-10-23 17:28:06
 %% ====================================================================
 
 -module(lib_world_player).
@@ -52,7 +52,7 @@ fetch_area_mover_info(SocketPId, {GridX,GridY} = _Coord) ->
 	NpcList = area_npcster_info(GridX,GridY),
 	NpcBin = lists:list_to_binary(NpcList),
 
-	gen_server:cast(SocketPId,{msg,<<1001:32/little,PlayerBin/binary,NpcBin/binary>>}),
+	gen_server:cast(SocketPId,{send,<<1001:32/little,PlayerBin/binary,NpcBin/binary>>}),
 	ok.
 
 del_area_mover_info(SocketPId, {GridX,GridY} = _Coord) ->
@@ -64,7 +64,7 @@ del_area_mover_info(SocketPId, {GridX,GridY} = _Coord) ->
 	NpcList = area_npcster_info(GridX,GridY),
 	NpcBin = lists:list_to_binary(NpcList),
 
-	gen_server:cast(SocketPId,{msg,<<1002:32/little,PlayerBin/binary,NpcBin/binary>>}),
+	gen_server:cast(SocketPId,{send,<<1002:32/little,PlayerBin/binary,NpcBin/binary>>}),
 	ok.
 
 area_player_info(GridX,GridY) ->
@@ -130,7 +130,7 @@ player_move(PlayerId,SceneId,SrcCoord,TarCoord) ->
 			SocketPId = get(PlayerId),
 			MsgBin1 = <<1002:32/little,Bin4/binary,Bin6/binary>>,
 			MsgBin2 = <<1001:32/little,Bin5/binary,Bin7/binary>>,
-			gen_server:cast(SocketPId,{msg,<<MsgBin1/binary,MsgBin2/binary>>})
+			gen_server:cast(SocketPId,{send,<<MsgBin1/binary,MsgBin2/binary>>})
 	end,
 	ok.
 
@@ -143,5 +143,5 @@ notify_area_mover_msg(MsgBin, SceneId, Coord) ->
 send_to_area(_MsgBin, []) -> ok;
 send_to_area(MsgBin, [PlayerId | T]) ->
 	SocketPId = get(PlayerId),
-	gen_server:cast(SocketPId,{msg,MsgBin}),
+	gen_server:cast(SocketPId,{send,MsgBin}),
 	send_to_area(MsgBin, T).
