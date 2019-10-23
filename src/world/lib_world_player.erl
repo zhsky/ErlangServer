@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-10-23 15:52:32
 %% @Doc:	DESC
-%% @Last:	2019-10-23 17:28:06
+%% @Last:	2019-10-23 17:29:35
 %% ====================================================================
 
 -module(lib_world_player).
@@ -103,9 +103,9 @@ player_move(PlayerId,SceneId,SrcCoord,TarCoord) ->
 	TarBlockId = lib_block:calc_block_coord(SceneId, TarBlockX, TarBlockY),
 	SrcBlockId = lib_block:calc_block_by_grid(SceneId, SrcCoord),
 	case SrcBlockId =:= TarBlockId of 
-		false ->
-			notify_area_mover_msg(MoveBin, SceneId, TarCoord);
 		true ->
+			notify_area_mover_msg(MoveBin, SceneId, TarCoord);
+		false ->
 			lib_player_block:del_player_id(SrcBlockId,PlayerId),
 			lib_player_block:add_player_id(TarBlockId,PlayerId),
 
