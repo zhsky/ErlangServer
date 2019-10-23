@@ -43,7 +43,7 @@ goto fun_run
 	rem ¿ªÊ¼±àÒë
 	cd %BASE_DIR%
 	
-	erl -noinput -eval "case make:files([\"src/kernel/makeapp.erl\"],[{outdir, \"ebin\"}]) of error -> halt(1); _ -> halt(0) end"
+	erl -noinput -eval "case make:files([\"src/tool/makeapp.erl\"],[{outdir, \"ebin\"}]) of error -> halt(1); _ -> halt(0) end"
 	erl -noinput -pa ./ebin -eval "case catch makeapp:make([%MAKE_OPTS%,{outdir, \"ebin\"}]) of up_to_date -> halt(0); error -> halt(1) end."
 	goto wait_input
 
