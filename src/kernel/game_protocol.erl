@@ -2,7 +2,7 @@
 %% @Author:	Payton
 %% @Date:	2019-09-03 17:08:14
 %% @Doc:	基于ranch库开发,增加了ranch_tcp对异步收发消息的支持
-%% @Last:	2019-09-04 22:15:39
+%% @Last:	2020-02-11 16:34:41
 %% ====================================================================
 
 -module(game_protocol).
@@ -30,7 +30,7 @@ start_link(Ref, Transport, Opts) ->
 init({Ref, Transport, _Opts}) ->
 	{ok, Socket} = ranch:handshake(Ref),
 	{ok, {IP, Port}} = Transport:peername(Socket),
-	{ok,DPid} = protocol_decoder:start_link(),
+	{ok,DPid} = protocol_decoder:start_link(self(),IP, Port),
 	Transport:async_recv(Socket, 0, infinity),
 	gen_server:enter_loop(?MODULE,[],#state{socket = Socket, ip = esockd_net:format_ip(IP), port = Port, transport = Transport,dpid = DPid}).
 
